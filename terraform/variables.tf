@@ -1,5 +1,5 @@
 variable "stage" {
-  default = ""
+  default = "prod"
 }
 
 variable "enabled" {
@@ -7,6 +7,6 @@ variable "enabled" {
 }
 
 variable "schedule_expression" {
-  default     = "rate(1 minute)"
+  default     = "rate(1 hour)"
   description = "Optional rate() or cron() expression to schedule the Lambda function at regular intervals"
 }
