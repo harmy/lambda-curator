@@ -39,7 +39,7 @@ def find_actionable_domains():
                 if re.match(r'\d+\s*[y|m|w|d|h]', tag['Value']):
                     tags.append(tag)
 
-            if tags != {}:
+            if tags:
                 domains.append((region, endpoint, tags))
 
     return domains
