@@ -11,7 +11,7 @@ from elasticsearch import Elasticsearch, RequestsHttpConnection
 from aws_requests_auth.aws_auth import AWSRequestsAuth
 
 logger = logging.getLogger()
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
 
 UNIT_CONFIG = {
     'y': 8760,
@@ -21,36 +21,40 @@ UNIT_CONFIG = {
     'h': 1    
 }
 
-def find_actionable_domains(es):
-    domains = {}
-    for domain in es.list_domain_names()['DomainNames']:
-        valid_tags = []
-        domain_info = es.describe_elasticsearch_domain(DomainName=domain['DomainName'])
-        endpoint = domain_info['DomainStatus']['Endpoint']
-        tags = es.list_tags(ARN=domain_info['DomainStatus']['ARN'])
-        
-        for tag in tags['TagList']:
-            if re.match(r'\d+\s*[y|m|w|d|h]', tag['Value']):
-                valid_tags.append(tag)
+def find_actionable_domains():
+    domains = []
+    enabled_regions = set(boto3.session.Session().get_available_regions('es'))
+    if os.environ.get('REGIONS'):
+        enabled_regions &= set([x for x in re.split(',| ', os.environ.get('REGIONS')) if x!=''])
 
-        if valid_tags != {}:
-            domains.update({endpoint: valid_tags})
+    for region in enabled_regions:
+        es = boto3.client('es', region)
+        for domain in es.list_domain_names()['DomainNames']:
+            tags = []
+            domain_info = es.describe_elasticsearch_domain(DomainName=domain['DomainName'])
+            endpoint = domain_info['DomainStatus']['Endpoint']
+            tags_info = es.list_tags(ARN=domain_info['DomainStatus']['ARN'])
+            
+            for tag in tags_info['TagList']:
+                if re.match(r'\d+\s*[y|m|w|d|h]', tag['Value']):
+                    tags.append(tag)
+
+            if tags != {}:
+                domains.append((region, endpoint, tags))
 
     return domains
 
 
 def lambda_handler(event, context):
-    actionable_domains = find_actionable_domains(boto3.client('es'))
-    
-    logger.debug(actionable_domains)
+    actionable_domains = find_actionable_domains()
     
     deleted_indices = {}
-    for endpoint, valid_tags in actionable_domains.items():
+    for region, endpoint, tags in actionable_domains:
         auth = AWSRequestsAuth(aws_access_key=os.environ.get('AWS_ACCESS_KEY_ID'),
                                aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
                                aws_token=os.environ.get('AWS_SESSION_TOKEN'),
                                aws_host=endpoint,
-                               aws_region=os.environ.get('AWS_REGION'),
+                               aws_region=region,
                                aws_service='es')
         es = Elasticsearch(host=endpoint, port=80, connection_class=RequestsHttpConnection,
                            http_auth=auth)
@@ -59,13 +63,13 @@ def lambda_handler(event, context):
         
         curator_config = {}
         curator_default = ''
-        for tag in valid_tags:
+        for tag in tags:
             if 'curator.default' in tag['Key']:
                 curator_default = tag['Value']
-                valid_tags.remove(tag)
+                tags.remove(tag)
                 break
 
-        for tag in valid_tags:
+        for tag in tags:
             prefix = tag['Key']
             retention_period = tag['Value']
             if not prefix.endswith('-'):
@@ -74,7 +78,7 @@ def lambda_handler(event, context):
 
         if curator_default != '':
             for index in es.indices.get('*'):
-                if any([index.startswith(tag['Key']) for tag in valid_tags]):
+                if any([index.startswith(tag['Key']) for tag in tags]):
                     continue
                 matched = re.match(r'(.*)-(\d{4}([-/.]\d{2}){,3})$', index)
                 if not matched:
@@ -86,7 +90,7 @@ def lambda_handler(event, context):
                 if prefix not in curator_config:
                     curator_config[prefix] = curator_default                    
 
-        logger.debug(curator_config)
+        logger.info(curator_config)
 
         for prefix, retention_period in curator_config.items():
             index_list = curator.IndexList(es)
@@ -104,7 +108,7 @@ def lambda_handler(event, context):
                 pass
 
     lambda_response = {'deleted': deleted_indices}
-    logger.debug(lambda_response)
+    logger.info(lambda_response)
     return lambda_response
 
 
