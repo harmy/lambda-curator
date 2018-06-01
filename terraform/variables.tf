@@ -1,10 +1,10 @@
 variable "stage" {
-  default = "prod"
+  default     = "prod"
   description = "Stage, e.g. 'prod', 'staging', 'dev', or 'test'"
 }
 
 variable "enabled" {
-  default = true
+  default     = true
   description = "If true, schedule_expression will be applied"
 }
 
@@ -14,6 +14,6 @@ variable "schedule_expression" {
 }
 
 variable "regions" {
-  default = ""
+  default     = ""
   description = "Regions in which lambda-curator is enabled, split by comma or space,leave it blank as all regions enabled"
 }
