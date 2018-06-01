@@ -1,4 +1,4 @@
-#coding=utf-8
+# coding=utf-8
 from __future__ import print_function
 import os
 import re
@@ -18,14 +18,15 @@ UNIT_CONFIG = {
     'm': 720,
     'w': 168,
     'd': 24,
-    'h': 1    
+    'h': 1
 }
+
 
 def find_actionable_domains():
     domains = []
     enabled_regions = set(boto3.session.Session().get_available_regions('es'))
     if os.environ.get('REGIONS'):
-        enabled_regions &= set([x for x in re.split(',| ', os.environ.get('REGIONS')) if x!=''])
+        enabled_regions &= set([x for x in re.split(',| ', os.environ.get('REGIONS')) if x != ''])
 
     for region in enabled_regions:
         es = boto3.client('es', region)
@@ -34,7 +35,7 @@ def find_actionable_domains():
             domain_info = es.describe_elasticsearch_domain(DomainName=domain['DomainName'])
             endpoint = domain_info['DomainStatus']['Endpoint']
             tags_info = es.list_tags(ARN=domain_info['DomainStatus']['ARN'])
-            
+
             for tag in tags_info['TagList']:
                 if re.match(r'\d+\s*[y|m|w|d|h]', tag['Value']):
                     tags.append(tag)
@@ -47,7 +48,7 @@ def find_actionable_domains():
 
 def lambda_handler(event, context):
     actionable_domains = find_actionable_domains()
-    
+
     deleted_indices = {}
     for region, endpoint, tags in actionable_domains:
         auth = AWSRequestsAuth(aws_access_key=os.environ.get('AWS_ACCESS_KEY_ID'),
@@ -60,7 +61,7 @@ def lambda_handler(event, context):
                            http_auth=auth)
 
         deleted_indices[endpoint] = []
-        
+
         curator_config = {}
         curator_default = ''
         for tag in tags:
@@ -84,11 +85,11 @@ def lambda_handler(event, context):
                 if not matched:
                     continue
 
-                prefix = matched.groups()[0]
+                prefix, _ = matched.groups()
                 if not prefix.endswith('-'):
                     prefix += '-'
                 if prefix not in curator_config:
-                    curator_config[prefix] = curator_default                    
+                    curator_config[prefix] = curator_default
 
         logger.info(curator_config)
 
