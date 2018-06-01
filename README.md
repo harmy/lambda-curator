@@ -14,7 +14,7 @@ Example:
 
 | Key | Value | Comment |
 |-----|-------|---------|
-| logstash- | 7d | indices starting with logstash- and older than 7 dayts will be deleted |
+| logstash- | 7d | indices starting with logstash- and older than 7 days will be deleted |
 | curator.default | 1m | indices not matched by other prefixes and older than 1 month will be deleted |
 
 A manageable index name takes the following form:
