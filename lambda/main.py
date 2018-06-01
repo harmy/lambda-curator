@@ -37,7 +37,7 @@ def find_actionable_domains():
             tags_info = es.list_tags(ARN=domain_info['DomainStatus']['ARN'])
 
             for tag in tags_info['TagList']:
-                if re.match(r'\d+\s*[y|m|w|d|h]', tag['Value']):
+                if re.match(r'\d+[y|m|w|d|h]', tag['Value']):
                     tags.append(tag)
 
             if tags:
@@ -81,7 +81,7 @@ def lambda_handler(event, context):
             for index in es.indices.get('*'):
                 if any([index.startswith(tag['Key']) for tag in tags]):
                     continue
-                matched = re.match(r'(.*)-(\d{4}([-/.]\d{2}){,3})$', index)
+                matched = re.match(r'(.*)-(\d{4}([-/.]w?\d{2}){,3})$', index)
                 if not matched:
                     continue
 
@@ -95,7 +95,7 @@ def lambda_handler(event, context):
 
         for prefix, retention_period in curator_config.items():
             index_list = curator.IndexList(es)
-            matched = re.match(r'(\d+)\s*([y|m|w|d|h])', retention_period)
+            matched = re.match(r'(\d+)([y|m|w|d|h])', retention_period)
             if not matched:
                 continue
             p1, p2 = matched.groups()

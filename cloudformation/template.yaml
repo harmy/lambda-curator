@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'lambda-curator'
+
+Parameters:
+  Regions:
+    Default: ""
+    Description: "Regions in which lambda-curator is enabled, split by comma or space, if unset it will run against all available regions. Example: 'us-east-1 us-east-2'"
+    Type: String
+  ScheduleExpression:
+    Description: Optional rate() or cron() expression to schedule the Lambda function at regular intervals
+    Type: String
+    Default: rate(1 hour)
+  Stage:
+    Description: Stage, e.g. 'prod', 'staging', 'dev', or 'test'
+    Type: String
+    Default: prod
+  LogRetentionPeriod:
+    Default: "7"
+    Description: "Number of days to keep the Lambda function logs in CloudWatch."
+    Type: "Number"
+
+Resources:
+
+  LambdaExecutionerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  LambdaRolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub 'lambda-curator-${Stage}-${AWS::Region}'
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Action: es:*
+            Resource: "*"
+          -
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+            Resource:
+              !Sub |-
+                arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          -
+            Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource:
+              !Sub |-
+                arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lambda-curator-${Stage}-${AWS::Region}:*
+      Roles:
+        -
+          !Ref LambdaExecutionerRole
+  LogGroup:
+      Properties:
+        LogGroupName:
+          Fn::Join:
+            - ""
+            -
+              - "/aws/lambda/"
+              -
+                Ref: "ScheduledFunction"
+        RetentionInDays:
+          Ref: "LogRetentionPeriod"
+      Type: "AWS::Logs::LogGroup"
+
+  ScheduledFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'lambda-curator-${Stage}-${AWS::Region}'
+      Handler: main.lambda_handler
+      Runtime: python3.6
+      CodeUri: s3://harmy.github.com/lambda-curator/lambda-curator-0.0.3.zip
+      Timeout: 300
+      Role: !GetAtt LambdaExecutionerRole.Arn
+      Environment:
+        Variables:
+          REGIONS: !Ref Regions
+      Events:
+        Timer:
+          Type: Schedule
+          Properties:
+            Schedule: !Ref ScheduleExpression

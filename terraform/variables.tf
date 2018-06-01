@@ -15,5 +15,5 @@ variable "schedule_expression" {
 
 variable "regions" {
   default     = ""
-  description = "Regions in which lambda-curator is enabled, split by comma or space,leave it blank as all regions enabled"
+  description = "Regions in which lambda-curator is enabled, split by comma or space,if unset it will run against all available regions"
 }

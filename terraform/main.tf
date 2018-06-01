@@ -29,4 +29,10 @@ module "lambda" {
   log_retention_days  = 7
   schedule_expression = "${var.schedule_expression}"
   enabled             = "${var.enabled}"
+
+  environment {
+    variables {
+      REGIONS = "${var.regions}"
+    }
+  }
 }
