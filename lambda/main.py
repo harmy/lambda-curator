@@ -53,7 +53,6 @@ def lambda_handler(event, context):
     for region, endpoint, tags in actionable_domains:
         auth = AWSRequestsAuth(aws_access_key=os.environ.get('AWS_ACCESS_KEY_ID'),
                                aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
-                               aws_token=os.environ.get('AWS_SESSION_TOKEN'),
                                aws_host=endpoint,
                                aws_region=region,
                                aws_service='es')
