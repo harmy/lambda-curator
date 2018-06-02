@@ -5,6 +5,17 @@ All you need to do is tagging existing ES cluster.
 
 ## Getting Started
 
+### Installation
+It's as easy as launching a CloudFormation (or
+[Terraform][Terraform])
+stack and setting the `prefix=retention_period` tag on existing ES cluster.
+All the required infrastructure and configuration will be created automatically,
+so you can get started as fast as possible.
+
+[![Launch](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=LambdaCurator&templateURL=https://s3.amazonaws.com/harmy.github.com/lambda-curator/template.yaml)
+
+A single installation can handle all enabled clusters across all available AWS regions, but can be restricted to fewer regions if desired.
+
 ### Usage
 By adding one or more tags to existing ES cluster, you enabled lambda curator to manage it.
 
@@ -46,17 +57,6 @@ Example:
 | 1w | retain 1 week |
 | 1m | retain 1 month |
 | 1y | retain 1 year |
-
-### Installation
-It's as easy as launching a CloudFormation (or
-[Terraform][Terraform])
-stack and setting the `prefix=retention_period` tag on existing ES cluster.
-All the required infrastructure and configuration will be created automatically,
-so you can get started as fast as possible.
-
-[![Launch](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=LambdaCurator&templateURL=https://s3.amazonaws.com/harmy.github.com/lambda-curator/template.yaml)
-
-A single installation can handle all enabled clusters across all available AWS regions, but can be restricted to fewer regions if desired.
 
 ## License
 This software is distributed under the terms of the Apache-2.0 [license][license].
