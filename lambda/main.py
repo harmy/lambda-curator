@@ -81,7 +81,7 @@ def lambda_handler(event, context):
                 matched = re.match(r'(.*)-(\d{4}([-/.]w?\d{2}){,3})$', index)
                 if not matched:
                     continue
-                prefix, _ = matched.groups()
+                prefix = matched.groups()[0]
                 if not prefix.endswith('-'):
                     prefix += '-'
                 if prefix not in curator_config:
