@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: 'lambda-curator'
+Description: 'LambdaCurator: lambda function deletes old AWS ElasticSearch indices using curator'
 
 Parameters:
   Regions:
@@ -69,12 +69,10 @@ Resources:
   LogGroup:
       Properties:
         LogGroupName:
-          Fn::Join:
-            - ""
-            -
-              - "/aws/lambda/"
-              -
-                Ref: "ScheduledFunction"
+          !Join
+            - ''
+            - - '/aws/lambda/'
+              - !Ref ScheduledFunction
         RetentionInDays:
           Ref: "LogRetentionPeriod"
       Type: "AWS::Logs::LogGroup"
@@ -85,7 +83,7 @@ Resources:
       FunctionName: !Sub 'lambda-curator-${Stage}-${AWS::Region}'
       Handler: main.lambda_handler
       Runtime: python3.6
-      CodeUri: s3://harmy.github.com/lambda-curator/lambda-curator-0.0.3.zip
+      CodeUri: s3://harmy.github.com/lambda-curator/lambda-curator-0.0.4.zip
       Timeout: 300
       Role: !GetAtt LambdaExecutionerRole.Arn
       Environment:

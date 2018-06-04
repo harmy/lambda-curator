@@ -70,7 +70,6 @@ def lambda_handler(event, context):
             if 'curator.default' in tag['Key']:
                 curator_default = tag['Value']
                 continue
-
             if not prefix.endswith('-'):
                 prefix += '-'
             curator_config[prefix] = retention_period
@@ -82,7 +81,6 @@ def lambda_handler(event, context):
                 matched = re.match(r'(.*)-(\d{4}([-/.]w?\d{2}){,3})$', index)
                 if not matched:
                     continue
-
                 prefix, _ = matched.groups()
                 if not prefix.endswith('-'):
                     prefix += '-'
