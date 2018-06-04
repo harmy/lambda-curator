@@ -56,22 +56,19 @@ def lambda_handler(event, context):
                                aws_host=endpoint,
                                aws_region=region,
                                aws_service='es')
-        es = Elasticsearch(host=endpoint, port=80, connection_class=RequestsHttpConnection,
-                           http_auth=auth)
+        es = Elasticsearch(host=endpoint, port=80, connection_class=RequestsHttpConnection, http_auth=auth)
 
         deleted_indices[endpoint] = []
 
         curator_config = {}
         curator_default = ''
-        for tag in tags:
-            if 'curator.default' in tag['Key']:
-                curator_default = tag['Value']
-                tags.remove(tag)
-                break
 
         for tag in tags:
             prefix = tag['Key']
             retention_period = tag['Value']
+            if 'curator.default' in tag['Key']:
+                curator_default = tag['Value']
+                continue
             if not prefix.endswith('-'):
                 prefix += '-'
             curator_config[prefix] = retention_period
