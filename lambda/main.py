@@ -70,6 +70,7 @@ def lambda_handler(event, context):
             if 'curator.default' in tag['Key']:
                 curator_default = tag['Value']
                 continue
+
             if not prefix.endswith('-'):
                 prefix += '-'
             curator_config[prefix] = retention_period
