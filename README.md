@@ -21,6 +21,8 @@ By adding one or more tags to existing ES cluster, you enabled lambda curator to
 
 A tag should follow one pattern, which is prefix=retention_period.
 
+<img alt="ScreenShot" src="https://s3.amazonaws.com/harmy.github.com/lambda-curator/screenshot.png">
+
 Example:
 
 | Key | Value | Comment |
