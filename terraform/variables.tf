@@ -17,3 +17,8 @@ variable "regions" {
   default     = ""
   description = "Regions in which lambda-curator is enabled, split by comma or space,if unset it will run against all available regions"
 }
+
+variable "timeout" {
+  description = "Lambda timeout"
+  default     = 300
+}

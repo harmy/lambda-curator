@@ -2,7 +2,7 @@ data "aws_region" "current" {}
 
 data "aws_iam_policy_document" "lambda" {
   statement {
-    sid = "1"
+    sid = "AllowESFullAccess"
 
     actions = [
       "es:*",
@@ -17,10 +17,10 @@ data "aws_iam_policy_document" "lambda" {
 module "lambda" {
   source        = "github.com/harmy/terraform-aws-lambda"
   function_name = "lambda-curator-${var.stage}-${data.aws_region.current.name}"
-  description   = "Auto ES indices cleaning"
+  description   = "a lambda function deletes old AWS ElasticSearch indices using curator"
   handler       = "main.lambda_handler"
   runtime       = "python3.6"
-  timeout       = 300
+  timeout       = "${var.timeout}"
   source_path   = "${path.module}/../lambda"
 
   attach_policy = true

@@ -22,7 +22,7 @@ UNIT_CONFIG = {
 }
 
 
-def find_actionable_domains():
+def find_nonvpc_domains():
     domains = []
     enabled_regions = set(boto3.session.Session().get_available_regions('es'))
     if os.environ.get('REGIONS'):
@@ -33,6 +33,8 @@ def find_actionable_domains():
         for domain in es.list_domain_names()['DomainNames']:
             tags = []
             domain_info = es.describe_elasticsearch_domain(DomainName=domain['DomainName'])
+            if 'Endpoint' not in domain_info['DomainStatus']: 
+                continue
             endpoint = domain_info['DomainStatus']['Endpoint']
             tags_info = es.list_tags(ARN=domain_info['DomainStatus']['ARN'])
 
@@ -47,8 +49,7 @@ def find_actionable_domains():
 
 
 def lambda_handler(event, context):
-    actionable_domains = find_actionable_domains()
-
+    actionable_domains = find_nonvpc_domains()
     deleted_indices = {}
     for region, endpoint, tags in actionable_domains:
         auth = AWSRequestsAuth(aws_access_key=os.environ.get('AWS_ACCESS_KEY_ID'),
@@ -70,8 +71,6 @@ def lambda_handler(event, context):
             if 'curator.default' in tag['Key']:
                 curator_default = tag['Value']
                 continue
-            if not prefix.endswith('-'):
-                prefix += '-'
             curator_config[prefix] = retention_period
 
         if curator_default != '':
@@ -82,8 +81,6 @@ def lambda_handler(event, context):
                 if not matched:
                     continue
                 prefix = matched.groups()[0]
-                if not prefix.endswith('-'):
-                    prefix += '-'
                 if prefix not in curator_config:
                     curator_config[prefix] = curator_default
 
