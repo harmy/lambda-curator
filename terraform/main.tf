@@ -35,4 +35,11 @@ module "lambda" {
       REGIONS = "${var.regions}"
     }
   }
+
+  attach_vpc_config = "${length(var.vpc_config) > 0 ? true : false}"
+
+  vpc_config {
+    security_group_ids = "${var.vpc_config["security_group_ids"]}"
+    subnet_ids = "${var.vpc_config["subnet_ids"]}"
+  }
 }

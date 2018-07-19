@@ -22,3 +22,9 @@ variable "timeout" {
   description = "Lambda timeout"
   default     = 300
 }
+
+variable "vpc_config" {
+  description = "VPC configuration for the Lambda function"
+  type        = "map"
+  default     = {}
+}
