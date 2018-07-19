@@ -47,10 +47,39 @@ def find_nonvpc_domains():
 
     return domains
 
+def find_vpc_domains():
+    domains = []
+    region = os.environ.get('REGIONS')
+    if not region:
+        region = 'us-east-1'
+
+    es = boto3.client('es', region)
+    for domain in es.list_domain_names()['DomainNames']:
+        tags = []
+        domain_info = es.describe_elasticsearch_domain(DomainName=domain['DomainName'])
+        if 'Endpoints' not in domain_info['DomainStatus']:
+            continue
+        if 'VPCOptions' in domain_info['DomainStatus'] and domain_info['DomainStatus']['VPCOptions']['VPCId'] != os.environ['VPC_ID']:
+            continue
+        endpoint = domain_info['DomainStatus']['Endpoints']['vpc']
+        tags_info = es.list_tags(ARN=domain_info['DomainStatus']['ARN'])
+
+        for tag in tags_info['TagList']:
+            if re.match(r'\d+[y|m|w|d|h]', tag['Value']):
+                tags.append(tag)
+
+        if tags:
+            domains.append((region, endpoint, tags))
+
+    return domains
+
 
 def lambda_handler(event, context):
-    actionable_domains = find_nonvpc_domains()
+    actionable_domains = find_vpc_domains() if os.environ.get('VPC_ID') else find_nonvpc_domains()
     deleted_indices = {}
+    if actionable_domains == []:
+        return {'deleted': deleted_indices}
+
     for region, endpoint, tags in actionable_domains:
         auth = AWSRequestsAuth(aws_access_key=os.environ.get('AWS_ACCESS_KEY_ID'),
                                aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),

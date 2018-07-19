@@ -33,10 +33,11 @@ module "lambda" {
   environment {
     variables {
       REGIONS = "${var.regions}"
+      VPC_ID  = "${var.vpc_id}"
     }
   }
 
-  attach_vpc_config = "${length(var.vpc_config) > 0 ? true : false}"
+  attach_vpc_config = "${var.vpc_id != ""}"
 
   vpc_config {
     security_group_ids = "${var.vpc_config["security_group_ids"]}"
