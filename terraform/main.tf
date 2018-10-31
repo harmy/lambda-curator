@@ -39,8 +39,5 @@ module "lambda" {
 
   attach_vpc_config = "${var.vpc_id != ""}"
 
-  vpc_config {
-    security_group_ids = "${var.vpc_config["security_group_ids"]}"
-    subnet_ids = "${var.vpc_config["subnet_ids"]}"
-  }
+  vpc_config = "${var.vpc_config}"
 }
