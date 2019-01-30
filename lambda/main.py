@@ -100,7 +100,9 @@ def lambda_handler(event, context):
             if 'curator.default' in tag['Key']:
                 curator_default = tag['Value']
                 continue
-            curator_config[prefix] = retention_period
+            if prefix.startswith('curator.'):
+                pref = prefix.replace('curator.', '')
+                curator_config[pref] = retention_period
 
         if curator_default != '':
             for index in es.indices.get('*'):
