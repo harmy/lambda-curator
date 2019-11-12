@@ -117,6 +117,9 @@ def lambda_handler(event, context):
 
         for prefix, retention_period in curator_config.items():
             index_list = curator.IndexList(es)
+            matched_suffix = re.match(r'(.*)-(\d{4}([-/.]w?\d{2}){,3})$', index_list)
+            if not matched_suffix:
+                continue
             matched = re.match(r'(\d+)([y|m|w|d|h])', retention_period)
             if not matched:
                 continue
