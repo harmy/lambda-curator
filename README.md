@@ -66,3 +66,5 @@ This software is distributed under the terms of the Apache-2.0 [license][license
 [curator]: https://github.com/elastic/curator
 [license]: https://github.com/harmy/lambda-curator/blob/master/LICENSE
 [Terraform]: https://github.com/harmy/lambda-curator/tree/master/terraform
+
+Will rewrite using codex soon.
